@@ -6,31 +6,32 @@ import User from "@/models/User";
 export const inngest = new Inngest({ id: "quickcart-next" });
 
 // inngest function to save user data to a database 
-
 export const syncUserCreation = inngest.createFunction(
   {
-    id:'sync-user-from-clerk'
+    id: 'sync-user-from-clerk'
   },
   {
-    event:'clerk/user.created'
+    event: 'clerk/user.created'
   },
-  async ({event})=>{
-    const {id, first_name,last_name,email_addresses,image_url} = event.data;
+  async ({ event }) => {
+    const { id, first_name, last_name, email_addresses, image_url } = event.data;
+    
     const userData = {
-      _id:id,
-      email:email_addresses[0].email_address,
-      name:first_name+ " "+ last_name,
-      image_url:image_url
+      _id: id,
+      email: email_addresses[0]?.email_address,  // Use optional chaining to prevent errors
+      name: `${first_name} ${last_name}`,
+      imageUrl: image_url || "",  // Fix: Using correct image_url field
+    };
 
+    console.log("User Data before saving:", userData);  // Debugging log
 
-    }
     await connectDB();
-    await User.create(userData)
-
+    await User.create(userData);
   }
+);
 
 
-)
+
 
 // Inngest function to update userData in database
 
@@ -47,7 +48,7 @@ export const syncUserUpdation = inngest.createFunction(
       _id:id,
       email:email_addresses[0].email_address,
       name:first_name+ " "+ last_name,
-      image_url:image_url
+     imageUrl:image_url
     }
     await connectDB()
     await User.findByIdAndUpdate(id,userData)
