@@ -1,6 +1,8 @@
 import { Inngest } from "inngest";
 import connectDB from "./db";
 import User from "@/models/User";
+import { z } from "zod";  // Install it if missing!
+
 import Order from "@/models/Order";
 
 // Create a client to send and receive events
@@ -75,16 +77,24 @@ async({event})=>{
 }
 )
 
+
 export const createUserOrder = inngest.createFunction(
   {
-    id: 'create-user-order'
+    id: 'create-user-order',
   },
   {
     event: 'order/created',
     batch: {
       maxSize: 5,
       timeout: '5s'
-    }
+    },
+    data: z.object({
+      userId: z.string(),
+      items: z.array(z.string()),
+      amount: z.number(),
+      address: z.string(),
+      date: z.string(),
+    }),
   },
   async ({ events }) => {
     const orders = events.map((event) => ({
