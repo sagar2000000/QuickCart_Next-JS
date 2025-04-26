@@ -75,31 +75,29 @@ async({event})=>{
 }
 )
 
-
-//Inngest Fucntion to createa user's order in database
-
-export const createUserOrder = inngest.createFunction({
-  id:'create-user-order',
-  batchEvents:{
-    maxSize:5,
-    timeout:'5s'
-  }
-},
-{
-  event:'order/created'
-},
-async({events})=>{
-  const orders = events.map((event)=>{
-    return {
-      userId:event.data.userId,
-      items:event.data.items,
-      amount:event.data.amount,
-      address:event.data.address,
-      date:event.data.date
+export const createUserOrder = inngest.createFunction(
+  {
+    id: 'create-user-order'
+  },
+  {
+    event: 'order/created',
+    batch: {
+      maxSize: 5,
+      timeout: '5s'
     }
-  })
-  await connectDB()
-  await Order.insertMany(orders)
-  return ({success:true,processed:orders.length})
-})
+  },
+  async ({ events }) => {
+    const orders = events.map((event) => ({
+      userId: event.data.userId,
+      items: event.data.items,
+      amount: event.data.amount,
+      address: event.data.address,
+      date: event.data.date,
+    }));
 
+    await connectDB();
+    await Order.insertMany(orders);
+
+    return { success: true, processed: orders.length };
+  }
+);
